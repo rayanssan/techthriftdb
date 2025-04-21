@@ -1,0 +1,23 @@
+{
+  "name": "techthriftdb",
+  "version": "1.0.0",
+  "description": "techthriftdb project",
+  "main": "dbCreate.js",
+  "type": "module",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayanssan/techthriftdb.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rayanssan/techthriftdb/issues"
+  },
+  "homepage": "https://github.com/rayanssan/techthriftdb#readme",
+  "dependencies": {
+    "mysql2": "^3.14.0",
+  }
+}
