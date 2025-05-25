@@ -2,12 +2,11 @@ CREATE TABLE IF NOT EXISTS clients (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    phone_number VARCHAR(20),
+    phone_number VARCHAR(20) UNIQUE,
     nif CHAR(9) UNIQUE,
     nic CHAR(9) UNIQUE,
     gender ENUM('Male', 'Female', 'Other'),
-    dob DATE,
-    unread_notifications INT
+    dob DATE
 ); 
 
 CREATE TABLE IF NOT EXISTS entities ( -- Stores and Charities
@@ -46,7 +45,7 @@ END;
 CREATE TABLE IF NOT EXISTS employees (
     id INT PRIMARY KEY,
     store CHAR(9) NOT NULL,
-    internal_number INT UNIQUE,
+    internal_number VARCHAR(255),
 
     FOREIGN KEY (id) REFERENCES clients(id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (store) REFERENCES entities(nipc) ON UPDATE CASCADE ON DELETE CASCADE
@@ -270,6 +269,7 @@ CREATE TABLE IF NOT EXISTS interests (
     storage VARCHAR(255),
     year YEAR,
     date_inserted TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    unread_notifications INT,
 
     FOREIGN KEY (interested_user) REFERENCES clients(email) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (category) REFERENCES categories(category) ON UPDATE CASCADE ON DELETE CASCADE
