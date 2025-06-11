@@ -151,21 +151,13 @@ CREATE TABLE IF NOT EXISTS saleProducts (
     FOREIGN KEY (id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS repairProducts (
-    id INT PRIMARY KEY,
-    problems VARCHAR(255),
-    client_nif CHAR(9),
-    client_nic CHAR(9),
-
-    FOREIGN KEY (id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (client_nif) REFERENCES clients(nif) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (client_nic) REFERENCES clients(nic) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS repairParts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    price DECIMAL(10,2) NOT NULL
+    price DECIMAL(10,2) NOT NULL,
+    store CHAR(9) NOT NULL,
+
+    FOREIGN KEY (store) REFERENCES entities(nipc) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS donationProducts (
@@ -184,28 +176,39 @@ CREATE TABLE IF NOT EXISTS donationProducts (
 
 CREATE TABLE IF NOT EXISTS transactions (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    client VARCHAR(255) NOT NULL,
+    client VARCHAR(255),
     transaction_value DECIMAL(10,2) NOT NULL,
     date_inserted TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (client) REFERENCES clients(email) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS purchases (
+    transaction_id INT PRIMARY KEY,
+    non_registered_client VARCHAR(255),
+    purchasing_store CHAR(9),
+    item_purchased INT NOT NULL,
+    
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (item_purchased) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (purchasing_store) REFERENCES entities(nipc) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS sales (
     transaction_id INT PRIMARY KEY,
     is_online BOOLEAN NOT NULL,
     order_number VARCHAR(255),
-    store INT,
+    store CHAR(9),
     employee INT,
-    shipping_address VARCHAR(255) NOT NULL,
-    shipping_postal_code VARCHAR(255) NOT NULL,
-    shipping_city VARCHAR(255) NOT NULL,
-    shipping_country CHAR(2) NOT NULL,
+    shipping_address VARCHAR(255),
+    shipping_postal_code VARCHAR(255),
+    shipping_city VARCHAR(255),
+    shipping_country CHAR(2),
     sale_status ENUM('To be shipped', 'Shipped', 'Delivered', 'Cancelled') NOT NULL DEFAULT 'To be shipped',
     network VARCHAR(255) NOT NULL,
 
     FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (store) REFERENCES entities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (store) REFERENCES entities(nipc) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (employee) REFERENCES employees(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
     -- If online transaction the order number must not be null
@@ -227,29 +230,17 @@ CREATE TABLE IF NOT EXISTS soldProducts (
 CREATE TABLE IF NOT EXISTS repairs (
     transaction_id INT PRIMARY KEY,
     product_id INT NOT NULL,
-    store INT NOT NULL,
+    store CHAR(9) NOT NULL,
     employee INT NOT NULL,
+    non_registered_client VARCHAR(255),
     repair_status ENUM('In repairs', 'Repaired; Awaiting Collection', 'Repaired; Collected') NOT NULL DEFAULT 'In repairs',
-    network VARCHAR(255) NOT NULL,
+    order_number VARCHAR(255),
+    network VARCHAR(255),
 
     FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES repairProducts(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (store) REFERENCES entities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (store) REFERENCES entities(nipc) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (employee) REFERENCES employees(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS donations (
-    transaction_id INT PRIMARY KEY,
-    product_id INT NOT NULL,
-    store INT NOT NULL,
-    employee INT NOT NULL,
-    charity INT NOT NULL,
-
-    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES donationProducts(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (store) REFERENCES entities(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (employee) REFERENCES employees(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (charity) REFERENCES entities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS interests (
@@ -292,4 +283,9 @@ CREATE TABLE IF NOT EXISTS shipping (
     current_shipping_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00
 
     CONSTRAINT ck_shipping_cost check (current_shipping_cost >= 0)
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    token VARCHAR(255) NOT NULL
 );
